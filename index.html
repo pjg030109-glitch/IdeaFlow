@@ -209,32 +209,32 @@
   </footer>
 
 <script>
-  <script>
-  const STORAGE_KEY = "gpj_ideaflow_ideas";
-  let ideas = [];
+   const input = document.getElementById("ideaInput");
+  const list = document.getElementById("ideasList");
+
+  let ideas = loadIdeas();
+
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
 
   function loadIdeas() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    ideas = saved ? JSON.parse(saved) : [];
-    renderIdeas();
+    return JSON.parse(localStorage.getItem("ideas")) || [];
   }
 
   function saveIdeas() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ideas));
+    localStorage.setItem("ideas", JSON.stringify(ideas));
   }
 
   function addIdea() {
-    const input = document.getElementById("ideaInput");
-    if (!input.value.trim()) return;
+    const text = input.value.trim();
+    if (!text) return;
 
-    const now = new Date().toISOString();
-
-    ideas.unshift({
-      id: crypto.randomUUID(),
-      content: input.value.trim(),
-      createdAt: now,
-      updatedAt: now,
-      archived: false
+    ideas.push({
+      id: generateId(),
+      content: text,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
 
     input.value = "";
@@ -244,11 +244,14 @@
 
   function editIdea(id) {
     const idea = ideas.find(i => i.id === id);
+    if (!idea) return;
+
     const newText = prompt("Editar ideia:", idea.content);
     if (!newText) return;
 
     idea.content = newText;
     idea.updatedAt = new Date().toISOString();
+
     saveIdeas();
     renderIdeas();
   }
@@ -260,11 +263,20 @@
   }
 
   function renderIdeas() {
-    const list = document.getElementById("ideasList");
     list.innerHTML = "";
+
+    if (ideas.length === 0) {
+      list.innerHTML = "<li style='opacity:.6'>Nenhuma ideia salva ainda</li>";
+      return;
+    }
 
     ideas.forEach(idea => {
       const li = document.createElement("li");
+      li.style.display = "flex";
+      li.style.justifyContent = "space-between";
+      li.style.alignItems = "center";
+      li.style.gap = "12px";
+
       li.innerHTML = `
         <span>${idea.content}</span>
         <div>
@@ -272,12 +284,12 @@
           <button onclick="deleteIdea('${idea.id}')">🗑️</button>
         </div>
       `;
+
       list.appendChild(li);
     });
   }
 
-  loadIdeas();
-</script>
+  renderIdeas();
 
 </script>
 </body>
