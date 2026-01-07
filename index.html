@@ -136,10 +136,14 @@
 
     ideas.forEach(idea => {
       const li = document.createElement("li");
+      li.style.marginBottom = "12px";
+
       li.innerHTML = `
         <strong>${idea.text}</strong><br>
-        <small>${idea.date}</small>
+        <small>${idea.date}</small><br>
+        <button onclick="deleteIdea(${idea.id})">🗑️ Excluir</button>
       `;
+
       ideaList.appendChild(li);
     });
   }
@@ -158,6 +162,13 @@
 
     saveIdeas(ideas);
     ideaInput.value = "";
+    loadIdeas();
+  }
+
+  function deleteIdea(id) {
+    let ideas = getIdeas();
+    ideas = ideas.filter(idea => idea.id !== id);
+    saveIdeas(ideas);
     loadIdeas();
   }
 
