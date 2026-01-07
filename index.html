@@ -71,6 +71,101 @@
       color: #94a3b8;
       font-size: .85rem;
     }
+/* ===== IdeaFlow UI Upgrade ===== */
+
+.idea-box {
+  margin-top: 80px;
+  background: linear-gradient(180deg, #020617, #020617cc);
+  border: 1px solid #1e293b;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.3);
+}
+
+.idea-box h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.idea-box textarea {
+  width: 100%;
+  min-height: 120px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 16px;
+  color: #e5e7eb;
+  font-size: 1rem;
+  transition: border .2s, box-shadow .2s;
+}
+
+.idea-box textarea:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56,189,248,.2);
+}
+
+.idea-box button {
+  margin-top: 16px;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  border: none;
+  color: #020617;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+}
+
+.idea-box button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(56,189,248,.4);
+}
+
+#ideaList {
+  margin-top: 32px;
+  display: grid;
+  gap: 16px;
+}
+
+#ideaList li {
+  list-style: none;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  transition: transform .2s, box-shadow .2s;
+}
+
+#ideaList li:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+}
+
+#ideaList strong {
+  display: block;
+  font-size: 1rem;
+  color: #e5e7eb;
+}
+
+#ideaList small {
+  color: #94a3b8;
+}
+
+#ideaList button {
+  margin-top: 10px;
+  margin-right: 8px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  color: #e5e7eb;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+#ideaList button:hover {
+  background: #1e293b;
+}
   </style>
 </head>
 
