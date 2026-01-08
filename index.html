@@ -38,7 +38,7 @@
       border: 1px solid #1e293b;
       border-radius: 16px;
       padding: 20px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
 
     textarea,
@@ -50,7 +50,6 @@
       border: 1px solid #1e293b;
       background: #020617;
       color: #e5e7eb;
-      resize: vertical;
     }
 
     button {
@@ -65,6 +64,16 @@
       cursor: pointer;
     }
 
+    .filter-box {
+      margin-bottom: 20px;
+    }
+
+    .filter-info {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
     ul {
       list-style: none;
       padding: 0;
@@ -75,10 +84,6 @@
       padding: 16px;
       border-radius: 14px;
       margin-bottom: 14px;
-    }
-
-    .idea-card p {
-      margin: 0 0 8px 0;
     }
 
     .tags {
@@ -92,6 +97,7 @@
       border-radius: 999px;
       font-size: 0.75rem;
       margin-right: 6px;
+      cursor: pointer;
     }
 
     .actions {
@@ -120,10 +126,11 @@
 <body>
   <header>
     <h1>IdeaFlow</h1>
-    <p>Captura ideias criativas do usuário</p>
+    <p>Captura e organiza ideias criativas</p>
   </header>
 
   <div class="container">
+
     <div class="idea-box">
       <h2>💡 Nova ideia</h2>
 
@@ -138,6 +145,16 @@
       <button onclick="addIdea()">Salvar ideia</button>
     </div>
 
+    <div class="filter-box">
+      <input
+        type="text"
+        id="filterInput"
+        placeholder="Filtrar por tag (ex: app)"
+        oninput="applyFilter()"
+      />
+      <div class="filter-info" id="filterInfo"></div>
+    </div>
+
     <ul id="ideasList"></ul>
   </div>
 
@@ -147,6 +164,7 @@
 
   <script>
     let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+    let activeFilter = "";
 
     function saveIdeas() {
       localStorage.setItem("ideas", JSON.stringify(ideas));
@@ -165,7 +183,7 @@
         id: Date.now(),
         content,
         tags: tagsRaw
-          ? tagsRaw.split(",").map(tag => tag.trim())
+          ? tagsRaw.split(",").map(tag => tag.trim().toLowerCase())
           : [],
         createdAt: new Date().toLocaleString()
       };
@@ -195,11 +213,34 @@
       renderIdeas();
     }
 
+    function setFilter(tag) {
+      activeFilter = tag;
+      document.getElementById("filterInput").value = tag;
+      renderIdeas();
+    }
+
+    function applyFilter() {
+      activeFilter = document.getElementById("filterInput").value.trim().toLowerCase();
+      renderIdeas();
+    }
+
     function renderIdeas() {
       const list = document.getElementById("ideasList");
+      const info = document.getElementById("filterInfo");
       list.innerHTML = "";
 
-      ideas.forEach(idea => {
+      let filteredIdeas = ideas;
+
+      if (activeFilter) {
+        filteredIdeas = ideas.filter(idea =>
+          idea.tags.includes(activeFilter)
+        );
+        info.textContent = `Filtrando por: #${activeFilter}`;
+      } else {
+        info.textContent = "";
+      }
+
+      filteredIdeas.forEach(idea => {
         const li = document.createElement("li");
 
         li.innerHTML = `
@@ -207,7 +248,9 @@
             <p>${idea.content}</p>
 
             <div class="tags">
-              ${idea.tags.map(tag => `<span class="tag">#${tag}</span>`).join("")}
+              ${idea.tags.map(tag =>
+                `<span class="tag" onclick="setFilter('${tag}')">#${tag}</span>`
+              ).join("")}
             </div>
 
             <small>${idea.createdAt}</small>
