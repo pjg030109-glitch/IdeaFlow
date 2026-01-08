@@ -8,31 +8,27 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #0b0f1a;
+      font-family: Arial, sans-serif;
+      background: #020617;
       color: #e5e7eb;
     }
 
     header {
       text-align: center;
-      padding: 80px 20px;
+      padding: 40px 20px;
     }
 
     header h1 {
-      font-size: 3rem;
-      background: linear-gradient(90deg, #38bdf8, #818cf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      margin: 0;
+      font-size: 2.5rem;
     }
 
     header p {
       color: #94a3b8;
-      font-size: 1.2rem;
-      margin-top: 16px;
     }
 
     .container {
-      max-width: 700px;
+      max-width: 800px;
       margin: auto;
       padding: 20px;
     }
@@ -41,61 +37,75 @@
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 40px;
+      padding: 20px;
+      margin-bottom: 30px;
     }
 
-    textarea {
+    textarea,
+    input {
       width: 100%;
-      height: 90px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 10px;
-      color: #e5e7eb;
       padding: 12px;
-      font-size: 1rem;
-      resize: none;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #e5e7eb;
+      resize: vertical;
     }
 
     button {
-      margin-top: 12px;
-      padding: 10px 18px;
-      border-radius: 10px;
+      margin-top: 14px;
+      padding: 12px;
+      width: 100%;
       border: none;
-      background: linear-gradient(90deg, #38bdf8, #818cf8);
-      color: #020617;
-      font-weight: bold;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 1rem;
       cursor: pointer;
     }
 
     ul {
       list-style: none;
       padding: 0;
-      margin-top: 20px;
     }
 
-    li {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+    .idea-card {
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 14px;
     }
 
-    li span {
-      flex: 1;
+    .idea-card p {
+      margin: 0 0 8px 0;
+    }
+
+    .tags {
+      margin-bottom: 8px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #2563eb;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      margin-right: 6px;
+    }
+
+    .actions {
+      margin-top: 8px;
+      text-align: right;
     }
 
     .actions button {
       background: none;
-      border: 1px solid #334155;
+      border: none;
       color: #e5e7eb;
-      padding: 6px 10px;
-      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      margin-left: 6px;
     }
 
     footer {
@@ -108,7 +118,6 @@
 </head>
 
 <body>
-
   <header>
     <h1>IdeaFlow</h1>
     <p>Captura ideias criativas do usuário</p>
@@ -116,53 +125,57 @@
 
   <div class="container">
     <div class="idea-box">
-      <h2>💡 Salve sua ideia</h2>
+      <h2>💡 Nova ideia</h2>
+
       <textarea id="ideaInput" placeholder="Digite sua ideia aqui..."></textarea>
-      <button type="button" onclick="addIdea()">Salvar ideia</button>
-<input 
-  type="text" 
-  id="searchInput" 
-  placeholder="🔍 Buscar ideias..."
-  style="
-    width: 100%;
-    padding: 10px;
-    margin-top: 16px;
-    margin-bottom: 16px;
-    border-radius: 10px;
-    border: 1px solid #1e293b;
-    background: #020617;
-    color: #e5e7eb;
-  "
-/>
-      <ul id="ideasList"></ul>
+
+      <input
+        type="text"
+        id="tagsInput"
+        placeholder="Tags (ex: marketing, app, IA)"
+      />
+
+      <button onclick="addIdea()">Salvar ideia</button>
     </div>
+
+    <ul id="ideasList"></ul>
   </div>
 
   <footer>
-    © 2026 · GPJ · IdeaFlow
+    IdeaFlow © GPJ
   </footer>
 
   <script>
     let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-let searchTerm = "";
+
     function saveIdeas() {
       localStorage.setItem("ideas", JSON.stringify(ideas));
     }
 
     function addIdea() {
-      const input = document.getElementById("ideaInput");
-      const text = input.value.trim();
+      const content = document.getElementById("ideaInput").value.trim();
+      const tagsRaw = document.getElementById("tagsInput").value.trim();
 
-      if (!text) return;
+      if (!content) {
+        alert("Digite uma ideia!");
+        return;
+      }
 
-      ideas.push({
+      const idea = {
         id: Date.now(),
-        content: text
-      });
+        content,
+        tags: tagsRaw
+          ? tagsRaw.split(",").map(tag => tag.trim())
+          : [],
+        createdAt: new Date().toLocaleString()
+      };
 
-      input.value = "";
+      ideas.unshift(idea);
       saveIdeas();
       renderIdeas();
+
+      document.getElementById("ideaInput").value = "";
+      document.getElementById("tagsInput").value = "";
     }
 
     function editIdea(id) {
@@ -186,18 +199,23 @@ let searchTerm = "";
       const list = document.getElementById("ideasList");
       list.innerHTML = "";
 
-     const filteredIdeas = ideas.filter(idea =>
-  idea.content.toLowerCase().includes(searchTerm)
-);
-
-filteredIdeas.forEach(idea => {
+      ideas.forEach(idea => {
         const li = document.createElement("li");
 
         li.innerHTML = `
-          <span>${idea.content}</span>
-          <div class="actions">
-            <button onclick="editIdea(${idea.id})">✏️</button>
-            <button onclick="deleteIdea(${idea.id})">🗑️</button>
+          <div class="idea-card">
+            <p>${idea.content}</p>
+
+            <div class="tags">
+              ${idea.tags.map(tag => `<span class="tag">#${tag}</span>`).join("")}
+            </div>
+
+            <small>${idea.createdAt}</small>
+
+            <div class="actions">
+              <button onclick="editIdea(${idea.id})">✏️</button>
+              <button onclick="deleteIdea(${idea.id})">🗑️</button>
+            </div>
           </div>
         `;
 
@@ -206,12 +224,6 @@ filteredIdeas.forEach(idea => {
     }
 
     renderIdeas();
- document.getElementById("searchInput").addEventListener("input", (e) => {
-  searchTerm = e.target.value.toLowerCase();
-  renderIdeas();
-});
   </script>
-
 </body>
 </html>
-
