@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>IdeaFlow</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root{
@@ -11,140 +11,130 @@
   --card:#0f172a;
   --border:#1e293b;
   --primary:#3b82f6;
+  --idea:#38bdf8;
+  --doing:#facc15;
+  --done:#22c55e;
   --text:#e5e7eb;
   --muted:#94a3b8;
 }
 
-*{
-  box-sizing:border-box;
-}
-
 body{
   margin:0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  background: radial-gradient(circle at top, #020617, #000);
+  font-family:system-ui;
+  background:var(--bg);
   color:var(--text);
 }
 
 header{
   text-align:center;
-  padding:50px 20px 30px;
-}
-
-header h1{
-  margin:0;
-  font-size:2.8rem;
-  letter-spacing:-1px;
-}
-
-header p{
-  color:var(--muted);
-  margin-top:8px;
+  padding:40px 20px;
 }
 
 .container{
-  max-width:900px;
+  max-width:1000px;
   margin:auto;
   padding:20px;
 }
 
 .box{
-  background:linear-gradient(180deg,#020617,#020617);
+  background:var(--card);
   border:1px solid var(--border);
-  border-radius:20px;
-  padding:22px;
-  margin-bottom:24px;
-  box-shadow:0 10px 30px rgba(0,0,0,.35);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:20px;
 }
 
-input, textarea{
+.dashboard{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+}
+
+.stat{
+  padding:18px;
+  border-radius:16px;
+  background:#020617;
+  border:1px solid var(--border);
+}
+
+.stat h3{
+  margin:0;
+  font-size:1.8rem;
+}
+
+.stat p{
+  margin:6px 0 0;
+  color:var(--muted);
+}
+
+.stat.idea{border-left:4px solid var(--idea)}
+.stat.doing{border-left:4px solid var(--doing)}
+.stat.done{border-left:4px solid var(--done)}
+
+input, textarea, select{
   width:100%;
-  padding:14px;
-  margin-top:12px;
-  border-radius:14px;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
   border:1px solid var(--border);
   background:#020617;
   color:var(--text);
-  font-size:1rem;
-}
-
-textarea{
-  resize:vertical;
-  min-height:100px;
 }
 
 button{
-  margin-top:14px;
-  padding:14px;
+  margin-top:12px;
+  padding:12px;
   width:100%;
   border:none;
-  border-radius:14px;
-  background:linear-gradient(135deg,var(--primary),#2563eb);
+  border-radius:12px;
+  background:var(--primary);
   color:white;
-  font-size:1rem;
   font-weight:600;
   cursor:pointer;
-  transition:.2s;
-}
-
-button:hover{
-  transform:translateY(-1px);
-  opacity:.95;
-}
-
-ul{
-  list-style:none;
-  padding:0;
 }
 
 .idea-card{
-  background:linear-gradient(180deg,#0f172a,#020617);
-  padding:18px;
-  border-radius:18px;
-  margin-bottom:16px;
+  background:#020617;
   border:1px solid var(--border);
-}
-
-.idea-card p{
-  margin:0 0 10px;
-  font-size:1.05rem;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:16px;
 }
 
 .tag{
   display:inline-block;
-  background:rgba(59,130,246,.15);
-  color:#93c5fd;
-  padding:4px 10px;
+  background:#2563eb;
+  padding:4px 8px;
   border-radius:999px;
   font-size:.75rem;
   margin-right:6px;
 }
 
+.status{
+  font-size:.7rem;
+  padding:4px 8px;
+  border-radius:999px;
+  margin-left:6px;
+}
+
+.status.Ideia{background:var(--idea)}
+.status["Em andamento"]{background:var(--doing)}
+.status.Concluída{background:var(--done)}
+
 .actions{
-  margin-top:10px;
   text-align:right;
+  margin-top:8px;
 }
 
 .actions button{
   background:none;
   border:none;
   color:var(--muted);
-  font-size:1.2rem;
+  font-size:1.1rem;
   cursor:pointer;
 }
 
-.actions button:hover{
-  color:white;
-}
-
 .hidden{display:none}
-
-footer{
-  text-align:center;
-  padding:40px;
-  color:#64748b;
-  font-size:.85rem;
-}
 </style>
 </head>
 
@@ -152,129 +142,144 @@ footer{
 
 <header>
   <h1>IdeaFlow</h1>
-  <p>Transforme pensamentos em ideias reais</p>
+  <p>Visão geral das suas ideias</p>
 </header>
 
 <div class="container">
 
 <div id="loginBox" class="box">
-  <h2>🔐 Login</h2>
+  <h2>Login</h2>
   <input id="loginUser" placeholder="Usuário">
   <input id="loginPass" type="password" placeholder="Senha">
   <button onclick="login()">Entrar</button>
-  <button onclick="showRegister()">Criar conta</button>
-</div>
-
-<div id="registerBox" class="box hidden">
-  <h2>🆕 Criar conta</h2>
-  <input id="regUser" placeholder="Usuário">
-  <input id="regPass" type="password" placeholder="Senha">
-  <button onclick="register()">Cadastrar</button>
-  <button onclick="showLogin()">Voltar</button>
 </div>
 
 <div id="appBox" class="hidden">
 
-  <div class="box">
-    <button onclick="logout()">🚪 Logout</button>
-  </div>
-
-  <div class="box">
-    <h2>💡 Nova ideia</h2>
-    <textarea id="ideaInput" placeholder="Digite sua ideia..."></textarea>
-    <input id="tagsInput" placeholder="Tags (ex: app, ia, startup)">
-    <button onclick="addIdea()">Salvar ideia</button>
-  </div>
-
-  <div class="box">
-    <h2>🔎 Pesquisar</h2>
-    <input id="searchInput" placeholder="Buscar por texto ou tag" oninput="renderIdeas()">
-  </div>
-
-  <ul id="ideasList"></ul>
+<div class="box">
+  <button onclick="logout()">Logout</button>
 </div>
 
+<!-- DASHBOARD -->
+<div class="box">
+  <h2>📊 Dashboard</h2>
+  <div class="dashboard">
+    <div class="stat idea">
+      <h3 id="totalIdeas">0</h3>
+      <p>Total de ideias</p>
+    </div>
+    <div class="stat doing">
+      <h3 id="doingIdeas">0</h3>
+      <p>Em andamento</p>
+    </div>
+    <div class="stat done">
+      <h3 id="doneIdeas">0</h3>
+      <p>Concluídas</p>
+    </div>
+  </div>
 </div>
 
-<footer>
-  IdeaFlow © GPJ
-</footer>
+<div class="box">
+  <h2>💡 Nova ideia</h2>
+  <textarea id="ideaInput" placeholder="Ideia principal"></textarea>
+  <input id="tagsInput" placeholder="Tags (ex: app, IA)">
+  <input id="nextStepInput" placeholder="Próximo passo">
+  <select id="statusInput">
+    <option>Ideia</option>
+    <option>Em andamento</option>
+    <option>Concluída</option>
+  </select>
+  <textarea id="notesInput" placeholder="Notas / desenvolvimento"></textarea>
+  <button onclick="addIdea()">Salvar ideia</button>
+</div>
+
+<div class="box">
+  <input id="searchInput" placeholder="Pesquisar..." oninput="renderIdeas()">
+</div>
+
+<ul id="ideasList"></ul>
+
+</div>
+</div>
 
 <script>
-let currentUser = localStorage.getItem("currentUser");
-let users = JSON.parse(localStorage.getItem("users")) || {};
-let ideas = [];
+let users=JSON.parse(localStorage.getItem("users"))||{};
+let currentUser=localStorage.getItem("currentUser");
+let ideas=[];
 
-function saveUsers(){localStorage.setItem("users",JSON.stringify(users));}
-
-function showRegister(){loginBox.classList.add("hidden");registerBox.classList.remove("hidden");}
-function showLogin(){registerBox.classList.add("hidden");loginBox.classList.remove("hidden");}
-
-function register(){
-  if(!regUser.value||!regPass.value)return alert("Preencha tudo");
-  if(users[regUser.value])return alert("Usuário já existe");
-  users[regUser.value]={password:regPass.value,ideas:[]};
-  saveUsers();alert("Conta criada!");showLogin();
+function saveUsers(){
+  localStorage.setItem("users",JSON.stringify(users));
 }
 
 function login(){
-  if(!users[loginUser.value]||users[loginUser.value].password!==loginPass.value)
-    return alert("Login inválido");
+  if(!users[loginUser.value]){
+    users[loginUser.value]={password:loginPass.value,ideas:[]};
+  }
+  if(users[loginUser.value].password!==loginPass.value)
+    return alert("Senha incorreta");
   localStorage.setItem("currentUser",loginUser.value);
   location.reload();
 }
 
-function logout(){localStorage.removeItem("currentUser");location.reload();}
+function logout(){
+  localStorage.removeItem("currentUser");
+  location.reload();
+}
 
 function addIdea(){
-  const content=ideaInput.value.trim();
-  if(!content)return alert("Digite uma ideia!");
+  if(!ideaInput.value.trim()) return alert("Digite uma ideia");
   ideas.unshift({
     id:Date.now(),
-    content,
-    tags:tagsInput.value?tagsInput.value.split(",").map(t=>t.trim().toLowerCase()):[],
+    content:ideaInput.value,
+    tags:tagsInput.value.split(",").map(t=>t.trim()),
+    nextStep:nextStepInput.value,
+    status:statusInput.value,
+    notes:notesInput.value,
     createdAt:new Date().toLocaleString()
   });
   users[currentUser].ideas=ideas;
   saveUsers();
-  ideaInput.value="";tagsInput.value="";
+  ideaInput.value=tagsInput.value=nextStepInput.value=notesInput.value="";
   renderIdeas();
+}
+
+function updateDashboard(){
+  totalIdeas.innerText=ideas.length;
+  doingIdeas.innerText=ideas.filter(i=>i.status==="Em andamento").length;
+  doneIdeas.innerText=ideas.filter(i=>i.status==="Concluída").length;
 }
 
 function deleteIdea(id){
   ideas=ideas.filter(i=>i.id!==id);
-  users[currentUser].ideas=ideas;saveUsers();renderIdeas();
-}
-
-function editIdea(id){
-  const idea=ideas.find(i=>i.id===id);
-  const txt=prompt("Editar ideia:",idea.content);
-  if(!txt)return;
-  idea.content=txt;saveUsers();renderIdeas();
+  users[currentUser].ideas=ideas;
+  saveUsers();
+  renderIdeas();
 }
 
 function renderIdeas(){
   const s=searchInput.value.toLowerCase();
   ideasList.innerHTML="";
-  ideas.filter(i=>i.content.toLowerCase().includes(s)||i.tags.some(t=>t.includes(s)))
+  ideas.filter(i=>i.content.toLowerCase().includes(s)||i.tags.join().includes(s))
   .forEach(i=>{
     ideasList.innerHTML+=`
     <li class="idea-card">
-      <p>${i.content}</p>
+      <strong>${i.content}</strong>
+      <span class="status ${i.status}">${i.status}</span>
+      <p><b>Próximo passo:</b> ${i.nextStep||"-"}</p>
+      <p>${i.notes||""}</p>
       ${i.tags.map(t=>`<span class="tag">#${t}</span>`).join("")}
-      <small style="display:block;margin-top:6px;color:#64748b">${i.createdAt}</small>
       <div class="actions">
-        <button onclick="editIdea(${i.id})">✏️</button>
         <button onclick="deleteIdea(${i.id})">🗑️</button>
       </div>
     </li>`;
   });
+  updateDashboard();
 }
 
-if(currentUser&&users[currentUser]){
+if(currentUser){
   loginBox.classList.add("hidden");
   appBox.classList.remove("hidden");
-  ideas=users[currentUser].ideas||[];
+  ideas=users[currentUser]?.ideas||[];
   renderIdeas();
 }
 </script>
