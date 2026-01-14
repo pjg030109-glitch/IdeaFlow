@@ -176,6 +176,50 @@
     color: var(--text-muted);
     font-size: 0.85rem;
   }
+  /* === Refinamento dos cartões de ideia === */
+
+.idea-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.idea-card p {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.idea-card small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.actions button {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.actions button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 </style>
 </head>
 
