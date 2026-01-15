@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>IdeaFlow – Ideia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #020617;
+  color: #e5e7eb;
+}
+
+.container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
+
+textarea, input {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  background: #020617;
+  color: #e5e7eb;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+  background: #2563eb;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <button onclick="goBack()">⬅ Voltar</button>
+
+  <h1 contenteditable id="title"></h1>
+
+  <h3>Descrição</h3>
+  <textarea id="details"></textarea>
+
+  <h3>Próximos passos</h3>
+  <textarea id="steps"></textarea>
+
+  <h3>Notas</h3>
+  <textarea id="notes"></textarea>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = Number(params.get("id"));
+
+let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+let idea = ideas.find(i => i.id === id);
+
+if (!idea) {
+  alert("Ideia não encontrada");
+  window.location.href = "index.html";
+}
+
+const title = document.getElementById("title");
+const details = document.getElementById("details");
+const steps = document.getElementById("steps");
+const notes = document.getElementById("notes");
+
+title.innerText = idea.content;
+details.value = idea.details || "";
+steps.value = idea.steps || "";
+notes.value = idea.notes || "";
+
+function save() {
+  idea.content = title.innerText;
+  idea.details = details.value;
+  idea.steps = steps.value;
+  idea.notes = notes.value;
+  localStorage.setItem("ideas", JSON.stringify(ideas));
+}
+
+title.onblur = save;
+details.onblur = save;
+steps.onblur = save;
+notes.onblur = save;
+
+function goBack() {
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
