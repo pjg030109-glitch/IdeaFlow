@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow - Seu Banco de Insights</title>
+    <title>IdeaFlow Pro | GPJ Enterprises</title>
     <style>
         :root {
             --primary: #6366f1;
@@ -30,7 +30,7 @@
         }
 
         body {
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
@@ -39,219 +39,270 @@
             transition: background-color 0.3s;
         }
 
+        /* --- SIDEBAR --- */
         .sidebar {
-            width: 300px;
+            width: 320px;
             background: var(--sidebar-bg);
             padding: 2rem;
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 20px;
             position: sticky;
             top: 0;
             height: 100vh;
             box-sizing: border-box;
-            transition: background-color 0.3s, border-color 0.3s;
+            overflow-y: auto;
         }
 
-        .header-sidebar { display: flex; justify-content: space-between; align-items: center; }
+        .brand-container { display: flex; flex-direction: column; }
         .brand { font-size: 1.8rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
-        .theme-toggle { background: none; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; padding: 5px 8px; color: var(--text); }
+        .by-gpj { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
 
-        .main-content { flex: 1; padding: 2rem; max-width: 900px; margin: 0 auto; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-card { background: var(--input-bg); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .stat-value { font-weight: 800; color: var(--primary); font-size: 1.2rem; }
+        .stat-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
 
-        h3 { margin: 0; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
-
+        /* --- FORMULÁRIO --- */
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             background: var(--input-bg);
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
             border: 1px solid var(--border);
         }
+        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 0.9rem; }
+        label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: -5px; }
 
-        input, select {
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            outline: none;
-            background: var(--card-bg);
-            color: var(--text);
-        }
+        .btn { border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-export { background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem; margin-top: auto; }
 
-        .btn-main { background-color: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-
-        .tag-filter { background: var(--input-bg); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; color: var(--text); }
-        .tag-filter.active { background: var(--primary); color: white; }
-
+        /* --- LISTA E CARDS --- */
+        .main-content { flex: 1; padding: 2rem; max-width: 900px; margin: 0 auto; width: 100%; }
+        
         .idea-card {
             background: var(--card-bg);
             padding: 1.5rem;
             margin-bottom: 15px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
         }
 
-        .badges { display: flex; gap: 8px; margin-top: 8px; }
-        .tag-badge { background: rgba(99, 102, 241, 0.1); color: var(--primary); padding: 3px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; }
+        .priority-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
+        .prio-alta { background: var(--danger); }
+        .prio-media { background: var(--edit); }
+        .prio-baixa { background: #10b981; }
+
+        .idea-info { display: flex; flex-direction: column; gap: 5px; }
+        .idea-date { font-size: 0.7rem; color: var(--text-muted); }
         
-        /* Cores de Status */
-        .status-badge { padding: 3px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; }
+        .badge-row { display: flex; gap: 8px; align-items: center; }
+        .status-badge { padding: 3px 8px; border-radius: 5px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; }
         .status-pendente { background: #e2e8f0; color: #475569; }
         .status-andamento { background: #fef3c7; color: #92400e; }
         .status-concluida { background: #dcfce7; color: #166534; }
 
-        .actions { display: flex; gap: 8px; }
-        .btn-action { border: none; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; }
-        .btn-edit { background: var(--edit); }
-        .btn-delete { background: var(--danger); }
+        footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border); padding: 20px; }
 
-        @media (max-width: 768px) { body { flex-direction: column; } .sidebar { width: 100%; height: auto; position: relative; } }
+        @media (max-width: 768px) { body { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <div class="header-sidebar">
-            <div class="brand">🌊 IdeaFlow</div>
-            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+        <div class="header-sidebar" style="display:flex; justify-content: space-between; align-items: flex-start;">
+            <div class="brand-container">
+                <span class="brand">IdeaFlow</span>
+                <span class="by-gpj">Product by GPJ</span>
+            </div>
+            <button onclick="toggleTheme()" class="btn" style="padding:5px;" id="themeBtn">🌙</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="doneCount">0</div>
+                <div class="stat-label">Concluídas</div>
+            </div>
         </div>
         
-        <div class="search-box">
-            <h3>Pesquisar</h3>
-            <input type="text" id="searchInput" placeholder="O que você procura?" onkeyup="displayIdeas()">
-        </div>
+        <input type="text" id="searchInput" placeholder="Buscar no ecossistema GPJ..." onkeyup="displayIdeas()">
 
-        <div>
-            <h3>Filtrar por Tag</h3>
-            <div id="filterTags" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
-        </div>
+        <div id="filterTags" style="display: flex; flex-wrap: wrap; gap: 5px;"></div>
 
         <div class="input-group">
-            <h3>Nova Ideia</h3>
             <input type="hidden" id="editId">
-            <input type="text" id="ideaInput" placeholder="Título da ideia...">
-            <input type="text" id="tagInput" placeholder="Tag...">
-            <select id="statusInput">
-                <option value="pendente">Pendente</option>
-                <option value="andamento">Em Andamento</option>
-                <option value="concluida">Concluída</option>
-            </select>
-            <button id="saveBtn" class="btn-main" onclick="saveIdea()">Salvar no Fluxo</button>
+            <label>O QUE VOCÊ PENSOU?</label>
+            <input type="text" id="ideaInput" placeholder="Ex: App de entregas com drones">
+            
+            <label>CATEGORIA (TAG)</label>
+            <input type="text" id="tagInput" placeholder="Ex: Tech, Logística">
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label>STATUS</label>
+                    <select id="statusInput" style="width: 100%; margin-top: 5px;">
+                        <option value="pendente">Pendente</option>
+                        <option value="andamento">Em Andamento</option>
+                        <option value="concluida">Concluída</option>
+                    </select>
+                </div>
+                <div>
+                    <label>PRIORIDADE</label>
+                    <select id="priorityInput" style="width: 100%; margin-top: 5px;">
+                        <option value="baixa">Baixa</option>
+                        <option value="media">Média</option>
+                        <option value="alta">Alta</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button id="saveBtn" class="btn btn-primary" onclick="saveIdea()">Lançar no Fluxo</button>
         </div>
+
+        <button class="btn btn-export" onclick="exportData()">📥 Backup de Dados (JSON)</button>
     </aside>
 
     <main class="main-content">
         <div id="ideasList"></div>
+        <footer>
+            © 2026 GPJ Enterprises. <strong>IdeaFlow v1.2</strong><br>
+            A inteligência da sua empresa começa aqui.
+        </footer>
     </main>
 
     <script>
         let selectedTag = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedTheme = localStorage.getItem('gpj_theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.getElementById('themeBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
             displayIdeas();
         });
 
         function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            document.getElementById('themeBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            localStorage.setItem('gpj_theme', target);
+            document.getElementById('themeBtn').innerText = target === 'dark' ? '☀️' : '🌙';
         }
 
         function saveIdea() {
             const name = document.getElementById('ideaInput').value;
             const tag = document.getElementById('tagInput').value.trim();
             const status = document.getElementById('statusInput').value;
+            const priority = document.getElementById('priorityInput').value;
             const editId = document.getElementById('editId').value;
 
-            if (!name || !tag) return alert("Preencha o nome e a tag.");
+            if (!name || !tag) return alert("GPJ informa: Nome e Tag são obrigatórios.");
 
-            let ideas = JSON.parse(localStorage.getItem('ideaflow_data') || '[]');
+            let ideas = JSON.parse(localStorage.getItem('gpj_ideaflow_v2') || '[]');
 
             if (editId) {
-                ideas = ideas.map(item => item.id == editId ? { ...item, name, tag, status } : item);
+                ideas = ideas.map(i => i.id == editId ? { ...i, name, tag, status, priority } : i);
                 document.getElementById('editId').value = '';
-                document.getElementById('saveBtn').innerText = 'Salvar no Fluxo';
+                document.getElementById('saveBtn').innerText = 'Lançar no Fluxo';
             } else {
-                ideas.push({ name, tag, status, id: Date.now() });
+                const date = new Date().toLocaleDateString('pt-BR');
+                ideas.push({ name, tag, status, priority, date, id: Date.now() });
             }
 
-            localStorage.setItem('ideaflow_data', JSON.stringify(ideas));
+            localStorage.setItem('gpj_ideaflow_v2', JSON.stringify(ideas));
             resetForm();
             displayIdeas();
-        }
-
-        function deleteIdea(id) {
-            if (confirm("Remover do fluxo?")) {
-                let ideas = JSON.parse(localStorage.getItem('ideaflow_data') || '[]');
-                ideas = ideas.filter(item => item.id !== id);
-                localStorage.setItem('ideaflow_data', JSON.stringify(ideas));
-                displayIdeas();
-            }
-        }
-
-        function editIdea(id) {
-            const ideas = JSON.parse(localStorage.getItem('ideaflow_data') || '[]');
-            const idea = ideas.find(item => item.id === id);
-            document.getElementById('ideaInput').value = idea.name;
-            document.getElementById('tagInput').value = idea.tag;
-            document.getElementById('statusInput').value = idea.status;
-            document.getElementById('editId').value = idea.id;
-            document.getElementById('saveBtn').innerText = 'Atualizar Ideia';
-            window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
         function resetForm() {
             document.getElementById('ideaInput').value = '';
             document.getElementById('tagInput').value = '';
             document.getElementById('statusInput').value = 'pendente';
+            document.getElementById('priorityInput').value = 'baixa';
         }
 
-        function toggleTagFilter(tag) {
-            selectedTag = (selectedTag === tag) ? null : tag;
-            displayIdeas();
+        function deleteIdea(id) {
+            if(confirm("Confirmar exclusão definitiva do registro GPJ?")) {
+                let ideas = JSON.parse(localStorage.getItem('gpj_ideaflow_v2') || '[]');
+                localStorage.setItem('gpj_ideaflow_v2', JSON.stringify(ideas.filter(i => i.id !== id)));
+                displayIdeas();
+            }
+        }
+
+        function editIdea(id) {
+            const ideas = JSON.parse(localStorage.getItem('gpj_ideaflow_v2') || '[]');
+            const idea = ideas.find(i => i.id === id);
+            document.getElementById('ideaInput').value = idea.name;
+            document.getElementById('tagInput').value = idea.tag;
+            document.getElementById('statusInput').value = idea.status;
+            document.getElementById('priorityInput').value = idea.priority;
+            document.getElementById('editId').value = idea.id;
+            document.getElementById('saveBtn').innerText = 'Atualizar Insight';
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function exportData() {
+            const data = localStorage.getItem('gpj_ideaflow_v2') || '[]';
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `GPJ_IdeaFlow_Backup_${new Date().getTime()}.json`;
+            a.click();
         }
 
         function displayIdeas() {
             const list = document.getElementById('ideasList');
+            const ideas = JSON.parse(localStorage.getItem('gpj_ideaflow_v2') || '[]');
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            let ideas = JSON.parse(localStorage.getItem('ideaflow_data') || '[]');
             
-            const filterContainer = document.getElementById('filterTags');
+            document.getElementById('totalCount').innerText = ideas.length;
+            document.getElementById('doneCount').innerText = ideas.filter(i => i.status === 'concluida').length;
+
             const tags = [...new Set(ideas.map(i => i.tag))];
-            filterContainer.innerHTML = tags.map(tag => `
-                <button class="tag-filter ${selectedTag === tag ? 'active' : ''}" onclick="toggleTagFilter('${tag}')">${tag}</button>
+            document.getElementById('filterTags').innerHTML = tags.map(t => `
+                <button onclick="selectedTag = (selectedTag === '${t}') ? null : '${t}'; displayIdeas();" 
+                        class="btn" style="font-size:0.65rem; padding:4px 10px; border:1px solid var(--border); background:${selectedTag === t ? 'var(--primary)' : 'var(--input-bg)'}; color:${selectedTag === t ? 'white' : 'var(--text)'}">
+                    ${t}
+                </button>
             `).join('');
 
-            let filtered = ideas.filter(idea => {
-                const matchesSearch = idea.name.toLowerCase().includes(searchTerm);
-                const matchesTag = selectedTag ? idea.tag === selectedTag : true;
-                return matchesSearch && matchesTag;
+            let filtered = ideas.filter(i => {
+                return i.name.toLowerCase().includes(searchTerm) && (!selectedTag || i.tag === selectedTag);
             });
 
-            list.innerHTML = filtered.sort((a,b) => b.id - a.id).map(idea => `
+            if (filtered.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding:50px; color:var(--text-muted)">Nenhum insight encontrado no banco de dados da GPJ.</div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.sort((a,b) => b.id - a.id).map(i => `
                 <div class="idea-card">
-                    <div>
-                        <strong style="display:block;">${idea.name}</strong>
-                        <div class="badges">
-                            <span class="tag-badge">#${idea.tag}</span>
-                            <span class="status-badge status-${idea.status}">${idea.status.replace('andamento', 'em andamento').toUpperCase()}</span>
+                    <div class="priority-indicator prio-${i.priority}"></div>
+                    <div class="idea-info">
+                        <span class="idea-date">Registrado em ${i.date}</span>
+                        <strong style="font-size: 1.1rem;">${i.name}</strong>
+                        <div class="badge-row">
+                            <span style="font-size:0.75rem; font-weight:700; color:var(--primary)">#${i.tag}</span>
+                            <span class="status-badge status-${i.status}">${i.status}</span>
                         </div>
                     </div>
-                    <div class="actions">
-                        <button class="btn-action btn-edit" onclick="editIdea(${idea.id})">✏️</button>
-                        <button class="btn-action btn-delete" onclick="deleteIdea(${idea.id})">🗑️</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn" style="background:var(--edit); color:white;" onclick="editIdea(${i.id})">✏️</button>
+                        <button class="btn" style="background:var(--danger); color:white;" onclick="deleteIdea(${i.id})">🗑️</button>
                     </div>
                 </div>
             `).join('');
