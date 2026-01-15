@@ -14,278 +14,169 @@ body {
   background: #020617;
   color: #e5e7eb;
   display: flex;
+  height: 100vh;
 }
 
-aside {
-  width: 220px;
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
   background: #020617;
   border-right: 1px solid #1e293b;
   padding: 20px;
 }
 
-aside h3 {
-  margin-top: 0;
+.sidebar h2 {
+  margin: 0 0 20px;
 }
 
-aside button {
+.sidebar input {
   width: 100%;
-  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
   background: #0f172a;
   color: #e5e7eb;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-  padding: 8px;
-  cursor: pointer;
 }
 
-main {
+/* MAIN */
+.main {
   flex: 1;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
-header {
-  text-align: center;
-  margin-bottom: 20px;
+.topbar {
+  padding: 16px 24px;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-textarea, input, select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  background: #020617;
-  color: #e5e7eb;
-  border: 1px solid #1e293b;
-  border-radius: 8px;
-}
-
-button.primary {
-  margin-top: 10px;
-  padding: 10px;
+.topbar button {
   background: #2563eb;
   color: white;
   border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* CARD */
+.card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.card button {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid #1e293b;
+  color: #93c5fd;
+  padding: 6px 10px;
   border-radius: 8px;
   cursor: pointer;
 }
 
-.kanban {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.column {
-  background: #0f172a;
-  border-radius: 12px;
-  padding: 10px;
-}
-
-.idea-card {
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.idea-card p {
-  outline: none;
-}
-
-.tag {
-  display: inline-block;
-  background: #2563eb;
-  border-radius: 999px;
-  padding: 4px 8px;
-  font-size: 0.7rem;
-  margin-right: 4px;
-}
-
-.actions {
-  text-align: right;
-  margin-top: 6px;
-}
-
-.actions button {
-  background: none;
-  border: none;
-  color: #e5e7eb;
-  cursor: pointer;
+.empty {
+  color: #64748b;
+  padding: 40px;
 }
 </style>
 </head>
 
 <body>
 
-<aside>
-  <h3>🏷️ Tags</h3>
-  <button onclick="setActiveTag(null)">Todas</button>
-  <div id="tagList"></div>
-</aside>
-
-<main>
-
-<header>
-  <h1>IdeaFlow</h1>
-  <p>Organize, desenvolva e finalize ideias</p>
-</header>
-
-<section>
-  <h2>💡 Nova ideia</h2>
-  <textarea id="ideaInput" placeholder="Ideia"></textarea>
-  <input id="tagsInput" placeholder="Tags separadas por vírgula">
-  <button class="primary" onclick="addIdea()">Salvar ideia</button>
-</section>
-
-<input
-  id="searchInput"
-  placeholder="Pesquisar por texto ou tag"
-  oninput="render()"
-/>
-
-<div class="kanban">
-  <div class="column">
-    <h3>💡 Ideias</h3>
-    <div id="col-idea"></div>
-  </div>
-  <div class="column">
-    <h3>🚧 Em progresso</h3>
-    <div id="col-progress"></div>
-  </div>
-  <div class="column">
-    <h3>✅ Finalizadas</h3>
-    <div id="col-done"></div>
-  </div>
+<div class="sidebar">
+  <h2>IdeaFlow</h2>
+  <input id="search" placeholder="Buscar ideias..." />
 </div>
 
-</main>
+<div class="main">
+  <div class="topbar">
+    <strong>Minhas ideias</strong>
+    <button onclick="addIdea()">+ Nova ideia</button>
+  </div>
+
+  <div id="board" class="board"></div>
+</div>
 
 <script>
 let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-let activeTag = null;
 
-function save() {
+function saveIdeas() {
   localStorage.setItem("ideas", JSON.stringify(ideas));
 }
 
 function addIdea() {
-  const content = ideaInput.value.trim();
-  if (!content) return alert("Digite uma ideia");
+  const content = prompt("Título da ideia:");
+  if (!content) return;
 
-  ideas.unshift({
+  ideas.push({
     id: Date.now(),
     content,
-    tags: tagsInput.value.split(",").map(t => t.trim()).filter(Boolean),
-    status: "idea",
     details: "",
     steps: "",
-    notes: "",
-    createdAt: new Date().toLocaleString()
+    notes: ""
   });
 
-  ideaInput.value = "";
-  tagsInput.value = "";
-  save();
-  render();
+  saveIdeas();
+  renderIdeas();
 }
 
-function updateField(id, field, value) {
-  const idea = ideas.find(i => i.id === id);
-  if (!idea) return;
-  idea[field] = value;
-  save();
-}
+function renderIdeas() {
+  const board = document.getElementById("board");
+  const search = document.getElementById("search").value.toLowerCase();
+  board.innerHTML = "";
 
-function changeStatus(id, status) {
-  updateField(id, "status", status);
-  render();
-}
+  const filtered = ideas.filter(i =>
+    i.content.toLowerCase().includes(search)
+  );
 
-function deleteIdea(id) {
-  ideas = ideas.filter(i => i.id !== id);
-  save();
-  render();
-}
+  if (filtered.length === 0) {
+    board.innerHTML = `<div class="empty">Nenhuma ideia encontrada</div>`;
+    return;
+  }
 
-function setActiveTag(tag) {
-  activeTag = tag;
-  render();
-}
-
-function render() {
-  ["idea","progress","done"].forEach(s => {
-    document.getElementById("col-"+s).innerHTML = "";
-  });
-
-  const q = searchInput.value.toLowerCase();
-
-  const visibleIdeas = ideas.filter(i => {
-    if (activeTag && !i.tags.includes(activeTag)) return false;
-    if (
-      q &&
-      !i.content.toLowerCase().includes(q) &&
-      !i.tags.some(t => t.toLowerCase().includes(q))
-    ) return false;
-    return true;
-  });
-
-  visibleIdeas.forEach(idea => {
+  filtered.forEach(idea => {
     const card = document.createElement("div");
-    card.className = "idea-card";
+    card.className = "card";
 
     card.innerHTML = `
-      <p contenteditable
-         onblur="updateField(${idea.id}, 'content', this.innerText)">
-        ${idea.content}
-      </p>
-
-      <div>
-        ${idea.tags.map(t => `<span class="tag">#${t}</span>`).join("")}
-      </div>
-
-      <select onchange="changeStatus(${idea.id}, this.value)">
-        <option value="idea" ${idea.status==="idea"?"selected":""}>Ideia</option>
-        <option value="progress" ${idea.status==="progress"?"selected":""}>Em progresso</option>
-        <option value="done" ${idea.status==="done"?"selected":""}>Finalizada</option>
-      </select>
-
-      <textarea placeholder="Descrição"
-        onblur="updateField(${idea.id}, 'details', this.value)">${idea.details}</textarea>
-
-      <textarea placeholder="Próximos passos"
-        onblur="updateField(${idea.id}, 'steps', this.value)">${idea.steps}</textarea>
-
-      <textarea placeholder="Notas"
-        onblur="updateField(${idea.id}, 'notes', this.value)">${idea.notes}</textarea>
-
-      <div class="actions">
-  <button onclick="openIdea(${idea.id})">🔍 Abrir</button>
-  <button onclick="deleteIdea(${idea.id})">🗑️</button>
-</div>
+      <h3>${idea.content}</h3>
+      <button onclick="openIdea(${idea.id})">Abrir →</button>
     `;
 
-    document.getElementById("col-"+idea.status).appendChild(card);
-  });
-
-  renderTags();
-}
-
-function renderTags() {
-  tagList.innerHTML = "";
-  const tags = [...new Set(ideas.flatMap(i => i.tags))];
-
-  tags.forEach(tag => {
-    const btn = document.createElement("button");
-    btn.textContent = "#"+tag;
-    btn.onclick = () => setActiveTag(tag);
-    tagList.appendChild(btn);
+    board.appendChild(card);
   });
 }
 
-render();
-  function openIdea(id) {
+function openIdea(id) {
   window.location.href = `idea.html?id=${id}`;
 }
+
+document.getElementById("search").addEventListener("input", renderIdeas);
+
+renderIdeas();
 </script>
 
 </body>
