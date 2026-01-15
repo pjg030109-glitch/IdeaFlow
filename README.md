@@ -28,7 +28,7 @@ O IdeaFlow permite que você exporte todo o banco de dados da **GPJ** em formato
 ---
 
 ### 🌐 Acesse agora
-[CLIQUE AQUI PARA ABRIR O IDEAFLOW](COLOQUE_AQUI_O_LINK_DO_SEU_GITHUB_PAGES)
+[CLIQUE AQUI PARA ABRIR O IDEAFLOW]https://pjg030109-glitch.github.io/ideaflow/
 
 ---
 © 2026 GPJ Enterprises. Conectando visões ao futuro.
