@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro v2.1 | GPJ Enterprises</title>
+    <title>IdeaFlow Pro v2.4 | GPJ Enterprises</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #6366f1; --primary-dark: #4f46e5; --danger: #ef4444;
-            --success: #10b981; --bg: #f1f5f9; --sidebar-bg: #ffffff;
-            --card-bg: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0;
+            --warning: #f59e0b; --success: #10b981; --bg: #f1f5f9; 
+            --sidebar-bg: #ffffff; --card-bg: #ffffff; --text: #1e293b; 
+            --text-muted: #64748b; --border: #e2e8f0;
         }
         [data-theme="dark"] {
             --bg: #0f172a; --sidebar-bg: #1e293b; --card-bg: #1e293b;
@@ -18,13 +20,12 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; min-height: 100vh; transition: 0.3s; }
         
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .modal-card { background: var(--sidebar-bg); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 500px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-card { background: var(--sidebar-bg); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 550px; position: relative; max-height: 90vh; overflow-y: auto; }
 
         #main-app { display: none; width: 100%; }
         .sidebar { width: 350px; background: var(--sidebar-bg); padding: 1.5rem; border-right: 1px solid var(--border); height: 100vh; position: sticky; top: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .main-content { flex: 1; padding: 2rem; }
 
-        /* DASHBOARD STATS */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 5px; }
         .stat-item { background: rgba(0,0,0,0.03); padding: 8px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
         .stat-val { display: block; font-weight: 800; font-size: 0.9rem; color: var(--primary); }
@@ -44,10 +45,25 @@
         .idea-card:hover { border-color: var(--primary); transform: translateY(-2px); }
         .prio-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 12px 0 0 12px; }
 
-        .btn-gpj { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        /* TAG CLOUD */
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 5px; padding: 5px 0; }
+        .tag-pill { font-size: 0.6rem; padding: 4px 10px; border-radius: 20px; background: rgba(99, 102, 241, 0.1); color: var(--primary); cursor: pointer; border: 1px solid transparent; font-weight: 700; }
+        .tag-pill.active { background: var(--primary); color: white; }
+
+        .deadline-badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-top: 5px; display: inline-block; }
+        .deadline-normal { background: rgba(0,0,0,0.05); color: var(--text-muted); }
+        .deadline-warning { background: var(--warning); color: white; }
+        .deadline-danger { background: var(--danger); color: white; }
+
+        .btn-gpj { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-gpj:hover { filter: brightness(1.1); }
+        
+        .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: rgba(0,0,0,0.02); padding: 8px; border-radius: 6px; }
+        .check-text { flex: 1; font-size: 0.9rem; }
+        .check-done { text-decoration: line-through; opacity: 0.5; }
+
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 11000; }
-        .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slide 0.3s forwards; }
-        @keyframes slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
 
         @media (max-width: 900px) { #main-app { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .kanban-container { grid-template-columns: 1fr; } }
     </style>
@@ -94,20 +110,26 @@
 
             <div class="input-group">
                 <input type="hidden" id="edit-id">
-                <input type="text" id="idea-title" placeholder="Título">
+                <input type="text" id="idea-title" placeholder="Título do Insight">
                 <textarea id="idea-desc" placeholder="Notas estratégicas..."></textarea>
-                <input type="url" id="idea-link" placeholder="Link de Referência (https://...)">
                 <div style="display:flex; gap:5px;">
-                    <input type="number" id="idea-val" placeholder="R$" style="flex:1">
+                    <input type="date" id="idea-deadline" style="flex:1">
                     <input type="text" id="idea-tag" placeholder="Tag" style="flex:1">
                 </div>
+                <input type="url" id="idea-link" placeholder="Referência (URL)">
+                <div style="display:flex; gap:5px;">
+                    <input type="number" id="idea-val" placeholder="R$" style="flex:1">
+                    <select id="idea-prio" style="flex:1"><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option></select>
+                </div>
                 <select id="idea-status"><option value="pendente">Pendente</option><option value="andamento">Em Curso</option><option value="concluida">Concluída</option></select>
-                <select id="idea-prio"><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option></select>
                 <button class="btn-gpj" id="btn-save">Lançar na Nuvem</button>
             </div>
 
             <input type="text" id="search-input" placeholder="Pesquisar..." style="background:rgba(0,0,0,0.05); border:none;">
-            <div id="user-display" style="font-size:0.5rem; text-align:center; opacity:0.5; text-transform:uppercase;"></div>
+            
+            <div id="tag-filters" class="tag-cloud"></div>
+
+            <div id="user-display" style="font-size:0.5rem; text-align:center; opacity:0.3; margin-top: auto;"></div>
         </aside>
 
         <main class="main-content">
@@ -138,6 +160,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         let allIdeas = [];
+        let activeTagFilter = null;
 
         // AUTH
         document.getElementById('btn-login').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e => alert(e.message));
@@ -148,7 +171,7 @@
             if (user) {
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('main-app').style.display = 'flex';
-                document.getElementById('user-display').innerText = "CONTA ATIVA: " + user.email;
+                document.getElementById('user-display').innerText = user.email;
                 syncData(user.uid);
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
@@ -156,42 +179,31 @@
             }
         });
 
-        // DATABASE
-        document.getElementById('btn-save').onclick = async () => {
-            const id = document.getElementById('edit-id').value;
-            const data = {
-                uid: auth.currentUser.uid,
-                title: document.getElementById('idea-title').value,
-                desc: document.getElementById('idea-desc').value,
-                link: document.getElementById('idea-link').value,
-                value: document.getElementById('idea-val').value || 0,
-                tag: document.getElementById('idea-tag').value || 'Geral',
-                status: document.getElementById('idea-status').value,
-                prio: document.getElementById('idea-prio').value,
-                updatedAt: Date.now()
-            };
-
-            if(!data.title) return;
-            if(id) {
-                await updateDoc(doc(db, "ideas", id), data);
-                document.getElementById('edit-id').value = '';
-                document.getElementById('btn-save').innerText = 'Lançar na Nuvem';
-            } else {
-                await addDoc(collection(db, "ideas"), { ...data, pinned: false, createdAt: Date.now() });
-            }
-            resetForm();
-            showToast("Sincronizado!");
-        };
-
         function syncData(uid) {
             const q = query(collection(db, "ideas"), where("uid", "==", uid));
             onSnapshot(q, (snapshot) => {
                 allIdeas = [];
                 snapshot.forEach(doc => allIdeas.push({id: doc.id, ...doc.data()}));
                 updateStats();
+                updateTagCloud();
                 renderAll();
+                const openId = document.getElementById('current-focus-id')?.value;
+                if(openId) window.openFocus(openId);
             });
         }
+
+        function updateTagCloud() {
+            const tags = [...new Set(allIdeas.map(i => i.tag).filter(t => t))];
+            const container = document.getElementById('tag-filters');
+            container.innerHTML = `<span class="tag-pill ${!activeTagFilter ? 'active' : ''}" onclick="window.setTagFilter(null)">Todas</span>` + 
+                tags.map(t => `<span class="tag-pill ${activeTagFilter === t ? 'active' : ''}" onclick="window.setTagFilter('${t}')">${t}</span>`).join('');
+        }
+
+        window.setTagFilter = (tag) => {
+            activeTagFilter = tag;
+            updateTagCloud();
+            renderAll();
+        };
 
         function updateStats() {
             const stats = { pendente: 0, andamento: 0, concluida: 0 };
@@ -203,8 +215,13 @@
 
         function renderAll() {
             const term = document.getElementById('search-input').value.toLowerCase();
-            const filtered = allIdeas.filter(i => i.title.toLowerCase().includes(term) || i.tag.toLowerCase().includes(term))
-                                     .sort((a,b) => (b.pinned - a.pinned) || (b.updatedAt - a.updatedAt));
+            let filtered = allIdeas.filter(i => {
+                const matchSearch = i.title.toLowerCase().includes(term) || (i.tag && i.tag.toLowerCase().includes(term));
+                const matchTag = !activeTagFilter || i.tag === activeTagFilter;
+                return matchSearch && matchTag;
+            });
+            
+            filtered.sort((a,b) => (b.pinned - a.pinned) || (b.updatedAt - a.updatedAt));
             
             document.getElementById('ideasList').innerHTML = filtered.map(i => createCardHTML(i)).join('');
             ['pendente', 'andamento', 'concluida'].forEach(s => {
@@ -214,14 +231,25 @@
 
         function createCardHTML(i) {
             const colors = { alta: '#ef4444', media: '#f59e0b', baixa: '#10b981' };
+            const tasksTotal = i.checklist?.length || 0;
+            const tasksDone = i.checklist?.filter(t => t.done).length || 0;
+            
+            let deadlineBadge = '';
+            if(i.deadline) {
+                const diff = (new Date(i.deadline) - new Date()) / (1000 * 60 * 60 * 24);
+                const style = diff < 0 ? 'deadline-danger' : (diff <= 2 ? 'deadline-warning' : 'deadline-normal');
+                deadlineBadge = `<span class="deadline-badge ${style}">${new Date(i.deadline).toLocaleDateString('pt-BR')}</span>`;
+            }
+
             return `
                 <div class="idea-card" onclick="window.openFocus('${i.id}')">
                     <div class="prio-indicator" style="background:${colors[i.prio]}"></div>
                     <div style="display:flex; justify-content:space-between; align-items:start;">
                         <div style="flex:1">
-                            <span style="font-size:0.6rem; color:var(--text-muted)">#${i.tag} ${i.pinned ? '📌' : ''}</span>
+                            <span style="font-size:0.6rem; color:var(--text-muted)">#${i.tag || 'Geral'} ${i.pinned ? '📌' : ''}</span>
                             <strong style="display:block;">${i.title}</strong>
-                            <span style="font-size:0.7rem; color:var(--primary); font-weight:bold;">R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</span>
+                            ${deadlineBadge}
+                            ${tasksTotal > 0 ? `<div style="font-size:0.6rem; color:var(--primary); font-weight:700; margin-top:3px;">✅ ${tasksDone}/${tasksTotal} AÇÕES</div>` : ''}
                         </div>
                         <div onclick="event.stopPropagation()" style="display:flex; gap:10px;">
                             <button onclick="window.pinIdea('${i.id}', ${i.pinned})" style="background:none; border:none; cursor:pointer;">📍</button>
@@ -233,61 +261,151 @@
             `;
         }
 
-        window.deleteIdea = id => confirm("Excluir da nuvem?") && deleteDoc(doc(db, "ideas", id));
-        window.pinIdea = (id, cur) => updateDoc(doc(db, "ideas", id), { pinned: !cur, updatedAt: Date.now() });
-        
+        // PDF GENERATOR
+        window.exportPDF = (id) => {
+            const i = allIdeas.find(x => x.id === id);
+            const { jsPDF } = window.jspdf;
+            const docPdf = new jsPDF();
+            
+            docPdf.setFont("helvetica", "bold");
+            docPdf.setFontSize(20);
+            docPdf.text("GPJ ENTERPRISES - PLANO DE AÇÃO", 10, 20);
+            
+            docPdf.setFontSize(16);
+            docPdf.setTextColor(99, 102, 241);
+            docPdf.text(i.title.toUpperCase(), 10, 35);
+            
+            docPdf.setFontSize(10);
+            docPdf.setTextColor(100, 116, 139);
+            docPdf.text(`Tag: ${i.tag || 'Geral'} | Valor Estimado: R$ ${i.value} | Prazo: ${i.deadline || 'N/A'}`, 10, 45);
+            
+            docPdf.setFont("helvetica", "normal");
+            docPdf.setTextColor(30, 41, 59);
+            docPdf.setFontSize(12);
+            const splitDesc = docPdf.splitTextToSize(i.desc || "Sem descrição detalhada.", 180);
+            docPdf.text(splitDesc, 10, 60);
+            
+            let y = 60 + (splitDesc.length * 7);
+            if(i.checklist && i.checklist.length > 0) {
+                docPdf.setFont("helvetica", "bold");
+                docPdf.text("CHECKLIST DE EXECUÇÃO:", 10, y + 10);
+                docPdf.setFont("helvetica", "normal");
+                i.checklist.forEach((t, idx) => {
+                    const status = t.done ? "[X]" : "[ ]";
+                    docPdf.text(`${status} ${t.text}`, 15, y + 20 + (idx * 7));
+                });
+            }
+            
+            docPdf.save(`GPJ_Plano_${i.title.replace(/\s+/g, '_')}.pdf`);
+            showToast("PDF Gerado!");
+        };
+
+        window.openFocus = id => {
+            const i = allIdeas.find(x => x.id === id);
+            if(!i) return;
+            document.getElementById('focus-content').innerHTML = `
+                <input type="hidden" id="current-focus-id" value="${i.id}">
+                <span onclick="window.closeFocus()" style="position:absolute; top:20px; right:20px; cursor:pointer; font-size:1.5rem;">×</span>
+                <p style="color:var(--primary); font-size:0.6rem; font-weight:800; margin:0;">RELATÓRIO ESTRATÉGICO GPJ</p>
+                <h2 style="margin:10px 0;">${i.title}</h2>
+                <div style="background:rgba(0,0,0,0.03); padding:15px; border-radius:10px; font-size:0.9rem; white-space:pre-wrap;">${i.desc || 'Sem notas.'}</div>
+                
+                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;">
+                    ${i.link ? `<a href="${i.link}" target="_blank" style="color:var(--primary); font-size:0.7rem; font-weight:700;">🔗 REFERÊNCIA</a>` : ''}
+                    <button class="btn-gpj" style="font-size:0.6rem; padding:5px 10px;" onclick="window.exportPDF('${i.id}')">📄 EXPORTAR PDF</button>
+                </div>
+
+                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+                    <h4 style="margin:0 0 10px 0; font-size:0.7rem;">CHECKLIST DE AÇÕES</h4>
+                    <div id="check-items-list">
+                        ${(i.checklist || []).map((t, idx) => `
+                            <div class="check-item">
+                                <input type="checkbox" ${t.done ? 'checked' : ''} onclick="window.toggleTask('${i.id}', ${idx})">
+                                <span class="check-text ${t.done ? 'check-done' : ''}">${t.text}</span>
+                                <span onclick="window.removeTask('${i.id}', ${idx})" style="cursor:pointer; opacity:0.2;">🗑️</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <input type="text" id="new-task" placeholder="Adicionar passo..." style="flex:1; padding:5px;">
+                        <button class="btn-gpj" onclick="window.addTask('${i.id}')" style="padding:5px 15px;">+</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('focus-modal').style.display = 'flex';
+        };
+
+        // EVENTOS E CRUD RESTANTE
+        document.getElementById('btn-save').onclick = async () => {
+            const id = document.getElementById('edit-id').value;
+            const data = {
+                uid: auth.currentUser.uid,
+                title: document.getElementById('idea-title').value,
+                desc: document.getElementById('idea-desc').value,
+                link: document.getElementById('idea-link').value,
+                deadline: document.getElementById('idea-deadline').value,
+                value: document.getElementById('idea-val').value || 0,
+                tag: document.getElementById('idea-tag').value || 'Geral',
+                status: document.getElementById('idea-status').value,
+                prio: document.getElementById('idea-prio').value,
+                updatedAt: Date.now()
+            };
+            if(!data.title) return;
+            id ? await updateDoc(doc(db, "ideas", id), data) : await addDoc(collection(db, "ideas"), { ...data, pinned: false, checklist: [], createdAt: Date.now() });
+            resetForm();
+            document.getElementById('btn-save').innerText = 'Lançar na Nuvem';
+            showToast("Sincronizado!");
+        };
+
+        window.addTask = async (id) => {
+            const val = document.getElementById('new-task').value;
+            if(!val) return;
+            const i = allIdeas.find(x => x.id === id);
+            await updateDoc(doc(db, "ideas", id), { checklist: [...(i.checklist || []), {text: val, done: false}] });
+        };
+
+        window.toggleTask = async (id, idx) => {
+            const i = allIdeas.find(x => x.id === id);
+            const list = [...i.checklist]; list[idx].done = !list[idx].done;
+            await updateDoc(doc(db, "ideas", id), { checklist: list });
+        };
+
+        window.removeTask = async (id, idx) => {
+            const i = allIdeas.find(x => x.id === id);
+            await updateDoc(doc(db, "ideas", id), { checklist: i.checklist.filter((_, index) => index !== idx) });
+        };
+
+        window.pinIdea = (id, cur) => updateDoc(doc(db, "ideas", id), { pinned: !cur });
+        window.deleteIdea = id => confirm("Remover?") && deleteDoc(doc(db, "ideas", id));
+        window.closeFocus = () => { document.getElementById('focus-modal').style.display = 'none'; document.getElementById('current-focus-id')?.remove(); };
+        window.toggleTheme = () => { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); };
+
         window.editIdea = id => {
             const i = allIdeas.find(x => x.id === id);
             document.getElementById('edit-id').value = i.id;
             document.getElementById('idea-title').value = i.title;
             document.getElementById('idea-desc').value = i.desc || '';
             document.getElementById('idea-link').value = i.link || '';
+            document.getElementById('idea-deadline').value = i.deadline || '';
             document.getElementById('idea-val').value = i.value;
-            document.getElementById('idea-tag').value = i.tag;
             document.getElementById('idea-status').value = i.status;
             document.getElementById('idea-prio').value = i.prio;
-            document.getElementById('btn-save').innerText = 'Atualizar Registro';
+            document.getElementById('idea-tag').value = i.tag || '';
+            document.getElementById('btn-save').innerText = 'Atualizar';
             window.scrollTo({top:0, behavior:'smooth'});
-        };
-
-        window.openFocus = id => {
-            const i = allIdeas.find(x => x.id === id);
-            document.getElementById('focus-content').innerHTML = `
-                <span onclick="window.closeFocus()" style="position:absolute; top:20px; right:20px; cursor:pointer; font-size:1.5rem;">×</span>
-                <p style="color:var(--primary); font-size:0.6rem; font-weight:800; margin:0;">REGISTRO GPJ #${i.id.substring(0,5)}</p>
-                <h2 style="margin:10px 0;">${i.title}</h2>
-                <div style="background:rgba(0,0,0,0.03); padding:20px; border-radius:15px; line-height:1.6; white-space:pre-wrap;">${i.desc || 'Nenhuma nota detalhada.'}</div>
-                ${i.link ? `<p style="margin-top:15px;">🔗 <a href="${i.link}" target="_blank" style="color:var(--primary); font-weight:700;">Acessar Referência Externa</a></p>` : ''}
-                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:10px; display:flex; justify-content:space-between; font-size:0.8rem;">
-                    <span>VALOR: <b>R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</b></span>
-                    <span>TAG: <b>${i.tag}</b></span>
-                </div>
-                <button class="btn-gpj" style="width:100%; margin-top:20px;" onclick="window.closeFocus()">Fechar Modo Foco</button>
-            `;
-            document.getElementById('focus-modal').style.display = 'flex';
-        };
-
-        window.closeFocus = () => document.getElementById('focus-modal').style.display = 'none';
-        window.toggleTheme = () => {
-            const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', t);
         };
 
         document.getElementById('search-input').onkeyup = renderAll;
         document.getElementById('tab-list').onclick = () => {
-            document.getElementById('list-view').style.display = 'block';
-            document.getElementById('kanban-view').style.display = 'none';
-            document.getElementById('tab-list').classList.add('active');
-            document.getElementById('tab-kanban').classList.remove('active');
+            document.getElementById('list-view').style.display = 'block'; document.getElementById('kanban-view').style.display = 'none';
+            document.getElementById('tab-list').classList.add('active'); document.getElementById('tab-kanban').classList.remove('active');
         };
         document.getElementById('tab-kanban').onclick = () => {
-            document.getElementById('list-view').style.display = 'none';
-            document.getElementById('kanban-view').style.display = 'grid';
-            document.getElementById('tab-list').classList.remove('active');
-            document.getElementById('tab-kanban').classList.add('active');
+            document.getElementById('list-view').style.display = 'none'; document.getElementById('kanban-view').style.display = 'grid';
+            document.getElementById('tab-list').classList.remove('active'); document.getElementById('tab-kanban').classList.add('active');
         };
 
-        function resetForm() { ['idea-title','idea-desc','idea-val','idea-tag','idea-link'].forEach(id => document.getElementById(id).value = ''); }
+        function resetForm() { ['idea-title','idea-desc','idea-val','idea-tag','idea-link','idea-deadline'].forEach(id => document.getElementById(id).value = ''); document.getElementById('edit-id').value = ''; }
         function showToast(m) {
             const t = document.createElement('div'); t.className = 'toast'; t.innerText = m;
             document.getElementById('toast-container').appendChild(t);
