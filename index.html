@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro SaaS | GPJ Enterprises</title>
+    <title>IdeaFlow Pro v2.1 | GPJ Enterprises</title>
     <style>
         :root {
             --primary: #6366f1; --primary-dark: #4f46e5; --danger: #ef4444;
@@ -17,33 +17,37 @@
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; min-height: 100vh; transition: 0.3s; }
         
-        /* --- AUTH & MODAL --- */
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .modal-card { background: var(--sidebar-bg); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 500px; position: relative; max-height: 90vh; overflow-y: auto; }
 
-        /* --- LAYOUT --- */
         #main-app { display: none; width: 100%; }
-        .sidebar { width: 350px; background: var(--sidebar-bg); padding: 1.5rem; border-right: 1px solid var(--border); height: 100vh; position: sticky; top: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .sidebar { width: 350px; background: var(--sidebar-bg); padding: 1.5rem; border-right: 1px solid var(--border); height: 100vh; position: sticky; top: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .main-content { flex: 1; padding: 2rem; }
 
+        /* DASHBOARD STATS */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 5px; }
+        .stat-item { background: rgba(0,0,0,0.03); padding: 8px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .stat-val { display: block; font-weight: 800; font-size: 0.9rem; color: var(--primary); }
+        .stat-label { font-size: 0.5rem; text-transform: uppercase; color: var(--text-muted); }
+
         .input-group { display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 12px; }
-        input, select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); }
+        input, select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 0.85rem; }
         
         .view-tabs { display: flex; background: rgba(0,0,0,0.05); padding: 4px; border-radius: 8px; }
         .tab-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); background: transparent; }
         .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        /* --- KANBAN --- */
         .kanban-container { display: none; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .kanban-column { background: rgba(0,0,0,0.02); border-radius: 15px; padding: 15px; min-height: 80vh; }
 
         .idea-card { background: var(--card-bg); padding: 1.2rem; margin-bottom: 12px; border-radius: 12px; border: 1px solid var(--border); position: relative; transition: 0.2s; cursor: pointer; }
-        .idea-card:hover { border-color: var(--primary); }
+        .idea-card:hover { border-color: var(--primary); transform: translateY(-2px); }
         .prio-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 12px 0 0 12px; }
 
         .btn-gpj { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 11000; }
-        .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); animation: slide 0.3s forwards; }
+        @keyframes slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
         @media (max-width: 900px) { #main-app { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .kanban-container { grid-template-columns: 1fr; } }
     </style>
@@ -77,6 +81,12 @@
                 </div>
             </div>
 
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-val" id="count-pendente">0</span><span class="stat-label">Pend</span></div>
+                <div class="stat-item"><span class="stat-val" id="count-andamento">0</span><span class="stat-label">Curso</span></div>
+                <div class="stat-item"><span class="stat-val" id="count-concluida">0</span><span class="stat-label">Feito</span></div>
+            </div>
+
             <div class="view-tabs">
                 <button class="tab-btn active" id="tab-list">LISTA</button>
                 <button class="tab-btn" id="tab-kanban">KANBAN</button>
@@ -84,20 +94,20 @@
 
             <div class="input-group">
                 <input type="hidden" id="edit-id">
-                <label style="font-size:0.6rem; font-weight:800; color:var(--text-muted);">CAPTURA DE INSIGHT</label>
                 <input type="text" id="idea-title" placeholder="Título">
                 <textarea id="idea-desc" placeholder="Notas estratégicas..."></textarea>
+                <input type="url" id="idea-link" placeholder="Link de Referência (https://...)">
                 <div style="display:flex; gap:5px;">
                     <input type="number" id="idea-val" placeholder="R$" style="flex:1">
                     <input type="text" id="idea-tag" placeholder="Tag" style="flex:1">
                 </div>
                 <select id="idea-status"><option value="pendente">Pendente</option><option value="andamento">Em Curso</option><option value="concluida">Concluída</option></select>
                 <select id="idea-prio"><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option></select>
-                <button class="btn-gpj" id="btn-save">Salvar na Nuvem</button>
+                <button class="btn-gpj" id="btn-save">Lançar na Nuvem</button>
             </div>
 
-            <input type="text" id="search-input" placeholder="Pesquisar ideias..." style="background:rgba(0,0,0,0.05); border:none;">
-            <div id="user-display" style="font-size:0.6rem; text-align:center; opacity:0.5;"></div>
+            <input type="text" id="search-input" placeholder="Pesquisar..." style="background:rgba(0,0,0,0.05); border:none;">
+            <div id="user-display" style="font-size:0.5rem; text-align:center; opacity:0.5; text-transform:uppercase;"></div>
         </aside>
 
         <main class="main-content">
@@ -129,7 +139,7 @@
         const db = getFirestore(app);
         let allIdeas = [];
 
-        // --- AUTH ---
+        // AUTH
         document.getElementById('btn-login').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e => alert(e.message));
         document.getElementById('btn-signup').onclick = () => createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e => alert(e.message));
         document.getElementById('btn-logout').onclick = () => signOut(auth);
@@ -138,7 +148,7 @@
             if (user) {
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('main-app').style.display = 'flex';
-                document.getElementById('user-display').innerText = user.email;
+                document.getElementById('user-display').innerText = "CONTA ATIVA: " + user.email;
                 syncData(user.uid);
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
@@ -146,33 +156,31 @@
             }
         });
 
-        // --- CRUD ---
+        // DATABASE
         document.getElementById('btn-save').onclick = async () => {
             const id = document.getElementById('edit-id').value;
             const data = {
                 uid: auth.currentUser.uid,
                 title: document.getElementById('idea-title').value,
                 desc: document.getElementById('idea-desc').value,
+                link: document.getElementById('idea-link').value,
                 value: document.getElementById('idea-val').value || 0,
                 tag: document.getElementById('idea-tag').value || 'Geral',
                 status: document.getElementById('idea-status').value,
                 prio: document.getElementById('idea-prio').value,
-                pinned: false,
                 updatedAt: Date.now()
             };
 
             if(!data.title) return;
-
             if(id) {
                 await updateDoc(doc(db, "ideas", id), data);
                 document.getElementById('edit-id').value = '';
-                document.getElementById('btn-save').innerText = 'Salvar na Nuvem';
+                document.getElementById('btn-save').innerText = 'Lançar na Nuvem';
             } else {
-                await addDoc(collection(db, "ideas"), { ...data, createdAt: Date.now() });
+                await addDoc(collection(db, "ideas"), { ...data, pinned: false, createdAt: Date.now() });
             }
-            
             resetForm();
-            showToast("Sincronizado com sucesso!");
+            showToast("Sincronizado!");
         };
 
         function syncData(uid) {
@@ -180,8 +188,17 @@
             onSnapshot(q, (snapshot) => {
                 allIdeas = [];
                 snapshot.forEach(doc => allIdeas.push({id: doc.id, ...doc.data()}));
+                updateStats();
                 renderAll();
             });
+        }
+
+        function updateStats() {
+            const stats = { pendente: 0, andamento: 0, concluida: 0 };
+            allIdeas.forEach(i => stats[i.status]++);
+            document.getElementById('count-pendente').innerText = stats.pendente;
+            document.getElementById('count-andamento').innerText = stats.andamento;
+            document.getElementById('count-concluida').innerText = stats.concluida;
         }
 
         function renderAll() {
@@ -189,9 +206,7 @@
             const filtered = allIdeas.filter(i => i.title.toLowerCase().includes(term) || i.tag.toLowerCase().includes(term))
                                      .sort((a,b) => (b.pinned - a.pinned) || (b.updatedAt - a.updatedAt));
             
-            // List
             document.getElementById('ideasList').innerHTML = filtered.map(i => createCardHTML(i)).join('');
-            // Kanban
             ['pendente', 'andamento', 'concluida'].forEach(s => {
                 document.getElementById(`k-${s}`).innerHTML = filtered.filter(i => i.status === s).map(i => createCardHTML(i)).join('');
             });
@@ -206,7 +221,7 @@
                         <div style="flex:1">
                             <span style="font-size:0.6rem; color:var(--text-muted)">#${i.tag} ${i.pinned ? '📌' : ''}</span>
                             <strong style="display:block;">${i.title}</strong>
-                            <span style="font-size:0.7rem; color:var(--primary); font-weight:bold;">R$ ${i.value}</span>
+                            <span style="font-size:0.7rem; color:var(--primary); font-weight:bold;">R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</span>
                         </div>
                         <div onclick="event.stopPropagation()" style="display:flex; gap:10px;">
                             <button onclick="window.pinIdea('${i.id}', ${i.pinned})" style="background:none; border:none; cursor:pointer;">📍</button>
@@ -218,7 +233,6 @@
             `;
         }
 
-        // --- GLOBALS ---
         window.deleteIdea = id => confirm("Excluir da nuvem?") && deleteDoc(doc(db, "ideas", id));
         window.pinIdea = (id, cur) => updateDoc(doc(db, "ideas", id), { pinned: !cur, updatedAt: Date.now() });
         
@@ -226,7 +240,8 @@
             const i = allIdeas.find(x => x.id === id);
             document.getElementById('edit-id').value = i.id;
             document.getElementById('idea-title').value = i.title;
-            document.getElementById('idea-desc').value = i.desc;
+            document.getElementById('idea-desc').value = i.desc || '';
+            document.getElementById('idea-link').value = i.link || '';
             document.getElementById('idea-val').value = i.value;
             document.getElementById('idea-tag').value = i.tag;
             document.getElementById('idea-status').value = i.status;
@@ -239,23 +254,25 @@
             const i = allIdeas.find(x => x.id === id);
             document.getElementById('focus-content').innerHTML = `
                 <span onclick="window.closeFocus()" style="position:absolute; top:20px; right:20px; cursor:pointer; font-size:1.5rem;">×</span>
-                <p style="color:var(--primary); font-size:0.6rem; font-weight:800; margin:0;">MODO FOCO GPJ</p>
+                <p style="color:var(--primary); font-size:0.6rem; font-weight:800; margin:0;">REGISTRO GPJ #${i.id.substring(0,5)}</p>
                 <h2 style="margin:10px 0;">${i.title}</h2>
                 <div style="background:rgba(0,0,0,0.03); padding:20px; border-radius:15px; line-height:1.6; white-space:pre-wrap;">${i.desc || 'Nenhuma nota detalhada.'}</div>
-                <p style="margin-top:20px; font-weight:bold; color:var(--primary);">Investimento/Valor: R$ ${i.value}</p>
-                <button class="btn-gpj" style="width:100%; margin-top:10px;" onclick="window.closeFocus()">Voltar ao Fluxo</button>
+                ${i.link ? `<p style="margin-top:15px;">🔗 <a href="${i.link}" target="_blank" style="color:var(--primary); font-weight:700;">Acessar Referência Externa</a></p>` : ''}
+                <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:10px; display:flex; justify-content:space-between; font-size:0.8rem;">
+                    <span>VALOR: <b>R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</b></span>
+                    <span>TAG: <b>${i.tag}</b></span>
+                </div>
+                <button class="btn-gpj" style="width:100%; margin-top:20px;" onclick="window.closeFocus()">Fechar Modo Foco</button>
             `;
             document.getElementById('focus-modal').style.display = 'flex';
         };
 
         window.closeFocus = () => document.getElementById('focus-modal').style.display = 'none';
-        
         window.toggleTheme = () => {
             const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', t);
         };
 
-        // --- UI ---
         document.getElementById('search-input').onkeyup = renderAll;
         document.getElementById('tab-list').onclick = () => {
             document.getElementById('list-view').style.display = 'block';
@@ -270,7 +287,7 @@
             document.getElementById('tab-kanban').classList.add('active');
         };
 
-        function resetForm() { ['idea-title','idea-desc','idea-val','idea-tag'].forEach(id => document.getElementById(id).value = ''); }
+        function resetForm() { ['idea-title','idea-desc','idea-val','idea-tag','idea-link'].forEach(id => document.getElementById(id).value = ''); }
         function showToast(m) {
             const t = document.createElement('div'); t.className = 'toast'; t.innerText = m;
             document.getElementById('toast-container').appendChild(t);
