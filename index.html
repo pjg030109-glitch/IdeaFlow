@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro v3.2 | GPJ Secure Edition</title>
+    <title>IdeaFlow Pro v3.3 | GPJ Enterprises</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -53,20 +53,19 @@
         .kanban-column h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); text-align: center; }
 
         /* Cards */
-        .idea-card { background: var(--card-bg); padding: 1.2rem; margin-bottom: 15px; border-radius: 15px; border: 1px solid var(--border); position: relative; transition: 0.2s; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .idea-card { background: var(--card-bg); padding: 1.2rem; margin-bottom: 15px; border-radius: 15px; border: 1px solid var(--border); position: relative; transition: 0.2s; cursor: pointer; }
         .prio-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; border-radius: 15px 0 0 15px; }
         
         .btn-gpj { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; width: 100%; }
         .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 8px; }
         .check-done { text-decoration: line-through; opacity: 0.5; }
         
-        .tag-pill { font-size: 0.65rem; padding: 5px 12px; border-radius: 20px; background: rgba(99,102,241,0.1); color: var(--primary); cursor: pointer; font-weight: 700; border: 1px solid transparent; }
+        .tag-pill { font-size: 0.65rem; padding: 5px 12px; border-radius: 20px; background: rgba(99,102,241,0.1); color: var(--primary); cursor: pointer; font-weight: 700; }
         .tag-pill.active { background: var(--primary); color: white; }
     </style>
 </head>
 <body>
 
-    <div id="toast-container"></div>
     <div id="focus-modal" class="overlay" style="display:none;"><div class="modal-card" id="focus-content"></div></div>
 
     <div id="auth-container" class="overlay">
@@ -74,12 +73,16 @@
             <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 15px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 900;">IF</div>
             <h2 style="color:var(--text); margin:0;">Segurança GPJ</h2>
             <p style="font-size:0.7rem; letter-spacing:2px; color:var(--text-muted); margin-bottom:2rem; text-transform: uppercase;">Acesso Criptografado</p>
+            
             <input type="email" id="login-email" placeholder="E-mail corporativo" style="width:100%; margin-bottom:12px; box-sizing: border-box;">
             <input type="password" id="login-pass" placeholder="Senha" style="width:100%; margin-bottom:10px; box-sizing: border-box;">
-            <button onclick="window.resetPassword()" style="background:none; border:none; color:var(--primary); font-size:0.7rem; cursor:pointer; margin-bottom:20px; font-weight:700;">ESQUECI MINHA SENHA</button>
+            
+            <button type="button" onclick="window.resetPassword()" style="background:none; border:none; color:var(--primary); font-size:0.75rem; cursor:pointer; margin-bottom:20px; font-weight:800; text-decoration: underline;">ESQUECI MINHA SENHA</button>
+            
             <button class="btn-gpj" id="btn-login" style="margin-bottom:10px;">Entrar no Sistema</button>
             <button class="btn-gpj" id="btn-signup" style="background:none; color:var(--text); border:1px solid var(--border);">Solicitar Novo Acesso</button>
-            <p id="auth-msg" style="font-size:0.7rem; color:var(--danger); margin-top:10px; font-weight:bold;"></p>
+            
+            <p id="auth-msg" style="font-size:0.75rem; color:var(--danger); margin-top:15px; font-weight:bold; min-height: 20px;"></p>
         </div>
     </div>
 
@@ -148,7 +151,6 @@
             </div>
 
             <div id="dashboard-view-container" style="display:none;">
-                <h2 style="margin-top:0;">Visão Executiva</h2>
                 <div class="dash-card" style="background:var(--card-bg); padding:20px; border-radius:15px; border:1px solid var(--border); margin-bottom:20px;">
                     <span style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; text-transform:uppercase;">Valor Total Pipeline</span>
                     <div id="dash-total-money" style="font-size:2.5rem; font-weight:900; color:var(--success);">R$ 0,00</div>
@@ -183,27 +185,38 @@
         let financeChart = null;
         let statusChart = null;
 
-        // AUTH LOGIC
+        // --- LÓGICA DE AUTENTICAÇÃO E RECUPERAÇÃO ---
+
+        window.resetPassword = () => {
+            const email = document.getElementById('login-email').value.trim();
+            const msg = document.getElementById('auth-msg');
+            if(!email) { msg.innerText = "⚠️ Digite seu e-mail para recuperar."; msg.style.color = "var(--warning)"; return; }
+            
+            sendPasswordResetEmail(auth, email)
+                .then(() => { 
+                    msg.innerText = "✅ Link de recuperação enviado para o e-mail!"; 
+                    msg.style.color = "var(--success)"; 
+                })
+                .catch(e => { 
+                    msg.innerText = "❌ Erro: e-mail não encontrado ou inválido."; 
+                    msg.style.color = "var(--danger)"; 
+                });
+        };
+
         document.getElementById('btn-login').onclick = () => {
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-pass').value;
             signInWithEmailAndPassword(auth, email, pass).then(u => {
-                if(!u.user.emailVerified) { alert("Verifique seu e-mail!"); signOut(auth); }
-            }).catch(e => document.getElementById('auth-msg').innerText = "Erro no acesso.");
+                if(!u.user.emailVerified) { alert("Confirme seu e-mail antes de entrar!"); signOut(auth); }
+            }).catch(e => document.getElementById('auth-msg').innerText = "Credenciais inválidas.");
         };
 
         document.getElementById('btn-signup').onclick = () => {
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-pass').value;
             createUserWithEmailAndPassword(auth, email, pass).then(u => {
-                sendEmailVerification(u.user); alert("Confirme seu e-mail para ativar a conta!"); signOut(auth);
+                sendEmailVerification(u.user); alert("Verifique seu e-mail para ativar a conta!"); signOut(auth);
             }).catch(e => alert(e.message));
-        };
-
-        window.resetPassword = () => {
-            const email = document.getElementById('login-email').value;
-            if(!email) return alert("Digite o e-mail primeiro!");
-            sendPasswordResetEmail(auth, email).then(() => alert("E-mail de recuperação enviado!"));
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -217,6 +230,8 @@
             }
         });
 
+        // --- LÓGICA DE DADOS ---
+
         function syncData(uid) {
             const q = query(collection(db, "ideas"), where("uid", "==", uid));
             onSnapshot(q, (snapshot) => {
@@ -225,11 +240,10 @@
                 updateStats();
                 updateTagCloud();
                 renderAll();
-                updateDashboard();
+                if(document.getElementById('dashboard-view-container').style.display === 'block') updateDashboard();
             });
         }
 
-        // RENDER LOGIC
         function renderAll() {
             const term = document.getElementById('search-input').value.toLowerCase();
             let filtered = allIdeas.filter(i => {
@@ -238,23 +252,21 @@
                 return matchSearch && matchTag;
             }).sort((a,b) => (b.pinned - a.pinned) || (b.createdAt - a.createdAt));
 
-            const html = filtered.map(i => `
+            document.getElementById('ideasList').innerHTML = filtered.map(i => `
                 <div class="idea-card" onclick="window.openFocus('${i.id}')">
                     <div class="prio-indicator" style="background:${i.prio==='alta'?'#ef4444':i.prio==='media'?'#f59e0b':'#10b981'}"></div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span style="font-size:0.6rem; color:var(--text-muted)">#${i.tag} ${i.pinned?'📌':''}</span>
+                    <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:var(--text-muted)">
+                        <span>#${i.tag} ${i.pinned?'📌':''}</span>
                         <div onclick="event.stopPropagation()">
                             <button onclick="window.editIdea('${i.id}')" style="background:none; border:none; cursor:pointer;">✏️</button>
                             <button onclick="window.deleteIdea('${i.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
                         </div>
                     </div>
                     <strong style="display:block; margin:5px 0;">${i.title}</strong>
-                    <div style="font-size:0.7rem; font-weight:bold; color:var(--success)">R$ ${parseFloat(i.value||0).toLocaleString()}</div>
-                    ${i.deadline ? `<div style="font-size:0.6rem; margin-top:5px;">📅 ${new Date(i.deadline).toLocaleDateString()}</div>` : ''}
+                    <div style="font-size:0.75rem; font-weight:bold; color:var(--success)">R$ ${parseFloat(i.value||0).toLocaleString('pt-BR')}</div>
                 </div>
             `).join('');
 
-            document.getElementById('ideasList').innerHTML = html;
             ['pendente', 'andamento', 'concluida'].forEach(s => {
                 document.getElementById(`k-${s}`).innerHTML = filtered.filter(x => x.status === s).map(i => `
                     <div class="idea-card" onclick="window.openFocus('${i.id}')" style="padding:10px; margin-bottom:10px;">
@@ -265,7 +277,8 @@
             });
         }
 
-        // CRUD & ACTIONS
+        // --- CRUD COMPLETO ---
+
         document.getElementById('btn-save').onclick = async () => {
             const id = document.getElementById('edit-id').value;
             const data = {
@@ -280,7 +293,7 @@
                 prio: document.getElementById('idea-prio').value,
                 updatedAt: Date.now()
             };
-            if(!data.title) return;
+            if(!data.title) return alert("Título obrigatório!");
             if(id) {
                 await updateDoc(doc(db, "ideas", id), data);
                 document.getElementById('edit-id').value = "";
@@ -303,23 +316,26 @@
             document.getElementById('idea-status').value = i.status;
             document.getElementById('idea-prio').value = i.prio;
             document.getElementById('btn-save').innerText = "Atualizar Insight";
+            window.scrollTo({top: 0, behavior: 'smooth'});
         };
 
-        window.deleteIdea = id => confirm("Remover?") && deleteDoc(doc(db, "ideas", id));
+        window.deleteIdea = id => confirm("Deseja apagar este projeto?") && deleteDoc(doc(db, "ideas", id));
+
+        // --- MODO FOCO E CHECKLIST ---
 
         window.openFocus = id => {
             const i = allIdeas.find(x => x.id === id);
             document.getElementById('focus-content').innerHTML = `
                 <span onclick="window.closeFocus()" style="float:right; cursor:pointer; font-size:1.5rem;">×</span>
                 <h2 style="margin:0;">${i.title}</h2>
-                <div style="display:flex; gap:10px; margin:10px 0;">
-                    <button class="btn-gpj" style="padding:5px 10px; font-size:0.6rem; width:auto;" onclick="window.togglePin('${i.id}', ${i.pinned})">${i.pinned?'DESFIXAR':'FIXAR 📌'}</button>
-                    <button class="btn-gpj" style="padding:5px 10px; font-size:0.6rem; width:auto; background:#10b981;" onclick="window.exportPDF('${i.id}')">PDF 📄</button>
-                    ${i.link ? `<a href="${i.link}" target="_blank" style="font-size:0.7rem; color:var(--primary); font-weight:bold; text-decoration:none;">🔗 Link</a>` : ''}
+                <div style="display:flex; gap:10px; margin:15px 0;">
+                    <button class="btn-gpj" style="padding:5px 12px; font-size:0.6rem; width:auto;" onclick="window.togglePin('${i.id}', ${i.pinned})">${i.pinned?'DESFIXAR':'FIXAR 📌'}</button>
+                    <button class="btn-gpj" style="padding:5px 12px; font-size:0.6rem; width:auto; background:#10b981;" onclick="window.exportPDF('${i.id}')">GERAR PDF 📄</button>
+                    ${i.link ? `<a href="${i.link}" target="_blank" style="padding:5px 12px; font-size:0.6rem; background:var(--bg); border-radius:8px; text-decoration:none; color:var(--primary); font-weight:900; border:1px solid var(--border);">ABRIR LINK 🔗</a>` : ''}
                 </div>
-                <div style="background:rgba(0,0,0,0.03); padding:15px; border-radius:10px; white-space:pre-wrap; margin-bottom:20px;">${i.desc || 'Sem notas.'}</div>
+                <div style="background:rgba(0,0,0,0.03); padding:20px; border-radius:15px; white-space:pre-wrap; margin-bottom:20px; font-size:0.9rem; line-height:1.6;">${i.desc || 'Nenhuma nota registrada.'}</div>
                 
-                <h4>Plano de Execução</h4>
+                <h4 style="margin-bottom:10px;">Plano de Ação</h4>
                 <div id="check-list">
                     ${(i.checklist || []).map((t, idx) => `
                         <div class="check-item">
@@ -329,15 +345,14 @@
                         </div>
                     `).join('')}
                 </div>
-                <div style="display:flex; gap:5px; margin-top:10px;">
-                    <input type="text" id="nt" placeholder="Nova tarefa...">
-                    <button class="btn-gpj" onclick="window.addTask('${i.id}')" style="width:auto; padding:0 15px;">+</button>
+                <div style="display:flex; gap:8px; margin-top:15px;">
+                    <input type="text" id="nt" placeholder="Adicionar tarefa..." style="flex:1;">
+                    <button class="btn-gpj" onclick="window.addTask('${i.id}')" style="width:auto; padding:0 20px;">+</button>
                 </div>
             `;
             document.getElementById('focus-modal').style.display = 'flex';
         };
 
-        // CHECKLIST ACTIONS
         window.addTask = async id => {
             const t = document.getElementById('nt').value; if(!t) return;
             const i = allIdeas.find(x => x.id === id);
@@ -356,37 +371,31 @@
         };
         window.togglePin = async (id, cur) => { await updateDoc(doc(db, "ideas", id), { pinned: !cur }); window.openFocus(id); };
 
-        // DASHBOARD
+        // --- DASHBOARD E PDF ---
+
         function updateDashboard() {
             const vals = { pendente: 0, andamento: 0, concluida: 0 };
             allIdeas.forEach(i => vals[i.status] += parseFloat(i.value||0));
             document.getElementById('dash-total-money').innerText = `R$ ${Object.values(vals).reduce((a,b)=>a+b,0).toLocaleString('pt-BR')}`;
-
             if(financeChart) financeChart.destroy();
             if(statusChart) statusChart.destroy();
-
-            financeChart = new Chart(document.getElementById('financeChart'), {
-                type: 'bar',
-                data: { labels:['Pendente','Curso','Feito'], datasets:[{label:'Valor R$', data:[vals.pendente, vals.andamento, vals.concluida], backgroundColor:'#6366f1'}]}
-            });
-            statusChart = new Chart(document.getElementById('statusChart'), {
-                type: 'doughnut',
-                data: { labels:['Pendente','Curso','Feito'], datasets:[{data:[allIdeas.filter(x=>x.status==='pendente').length, allIdeas.filter(x=>x.status==='andamento').length, allIdeas.filter(x=>x.status==='concluida').length], backgroundColor:['#64748b','#f59e0b','#10b981']}]}
-            });
+            financeChart = new Chart(document.getElementById('financeChart'), { type: 'bar', data: { labels:['Pendente','Curso','Feito'], datasets:[{label:'Volume Financeiro R$', data:[vals.pendente, vals.andamento, vals.concluida], backgroundColor:'#6366f1'}]} });
+            statusChart = new Chart(document.getElementById('statusChart'), { type: 'doughnut', data: { labels:['Pendente','Curso','Feito'], datasets:[{data:[allIdeas.filter(x=>x.status==='pendente').length, allIdeas.filter(x=>x.status==='andamento').length, allIdeas.filter(x=>x.status==='concluida').length], backgroundColor:['#64748b','#f59e0b','#10b981']}]} });
         }
 
-        // PDF EXPORT
         window.exportPDF = (id) => {
             const i = allIdeas.find(x => x.id === id);
             const { jsPDF } = window.jspdf; const docPdf = new jsPDF();
-            docPdf.setFontSize(20); docPdf.text("GPJ ENTERPRISES", 10, 20);
-            docPdf.setFontSize(14); docPdf.text(`Projeto: ${i.title}`, 10, 35);
-            docPdf.text(`Valor: R$ ${i.value || 0}`, 10, 45);
-            docPdf.setFontSize(12); docPdf.text(docPdf.splitTextToSize(i.desc || "", 180), 10, 60);
-            docPdf.save(`GPJ_${i.title}.pdf`);
+            docPdf.setFontSize(22); docPdf.text("GPJ ENTERPRISES - RELATÓRIO", 10, 20);
+            docPdf.setFontSize(16); docPdf.text(`Projeto: ${i.title}`, 10, 35);
+            docPdf.setFontSize(12); docPdf.text(`Status: ${i.status.toUpperCase()} | Valor: R$ ${i.value}`, 10, 45);
+            docPdf.text("Descrição:", 10, 60);
+            docPdf.setFontSize(10); docPdf.text(docPdf.splitTextToSize(i.desc || "Sem descrição.", 180), 10, 70);
+            docPdf.save(`GPJ_Relatorio_${i.title}.pdf`);
         };
 
-        // UTILS
+        // --- UTILITÁRIOS ---
+
         function updateStats() {
             const s = { pendente: 0, andamento: 0, concluida: 0 };
             allIdeas.forEach(i => s[i.status]++);
@@ -403,10 +412,17 @@
         window.toggleTheme = () => { const t = document.documentElement.getAttribute('data-theme') === 'dark'?'light':'dark'; document.documentElement.setAttribute('data-theme', t); };
         window.closeFocus = () => document.getElementById('focus-modal').style.display='none';
         document.getElementById('btn-logout').onclick = () => signOut(auth);
-        document.getElementById('tab-list-btn').onclick = () => { switchTab('list-view-container'); };
-        document.getElementById('tab-kanban-btn').onclick = () => { switchTab('kanban-view-container'); };
-        document.getElementById('tab-dash-btn').onclick = () => { switchTab('dashboard-view-container'); updateDashboard(); };
-        function switchTab(id) { ['list-view-container','kanban-view-container','dashboard-view-container'].forEach(v => document.getElementById(v).style.display = 'none'); document.getElementById(id).style.display = 'block'; }
+        
+        // TABS
+        document.getElementById('tab-list-btn').onclick = () => { switchTab('list-view-container', 'tab-list-btn'); };
+        document.getElementById('tab-kanban-btn').onclick = () => { switchTab('kanban-view-container', 'tab-kanban-btn'); };
+        document.getElementById('tab-dash-btn').onclick = () => { switchTab('dashboard-view-container', 'tab-dash-btn'); updateDashboard(); };
+        function switchTab(viewId, btnId) { 
+            ['list-view-container','kanban-view-container','dashboard-view-container'].forEach(v => document.getElementById(v).style.display = 'none');
+            ['tab-list-btn','tab-kanban-btn','tab-dash-btn'].forEach(b => document.getElementById(b).classList.remove('active'));
+            document.getElementById(viewId).style.display = 'block';
+            document.getElementById(btnId).classList.add('active');
+        }
         document.getElementById('search-input').onkeyup = renderAll;
 
         // PWA
